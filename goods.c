@@ -47,7 +47,7 @@ void start_counter(Db_t db){
 
 void list_db(Db_t db){
   puts("\n");
-
+  
   for(int i = 0; i < 20; i++){
     if(db->lager[i].amount != 0){
       printf("‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n[%d]: Namn: %s \n     Beskrivning: %s \n     Pris: %dkr \n     Antal: %dst  \n     Hyllinfo: %c%d \n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n", (i+1), db->lager[i].name, db->lager[i].info, db->lager[i].price, db->lager[i].amount, db->lager[i].place.shelf, db->lager[i].place.location);
@@ -80,7 +80,7 @@ void ask_string_question(char* question, char* reply){
 
 
 bool ask_yes_no(char* question){
-  puts(question);
+  printf("%s ",question);
   char buffert[32];
   char reply;
   while (getchar() != '\n');
@@ -123,7 +123,8 @@ void ask_char_question(char* question, char* reply){
 }
 
 void print_item_info_edit(Db_t db){
-  printf("‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n[%d]: Namn: %s \n     Beskrivning: %s \n     Pris: %dkr \n     Antal: %dst  \n     Hyllinfo: %c%d \n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n", ++db->counter, db->lager[db->counter].name, db->lager[db->counter].info, db->lager[db->counter].price, db->lager[db->counter].amount, db->lager[db->counter].place.shelf, db->lager[db->counter].place.location); 
+  int number = (db->counter+1);
+  printf("‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n          [%d]\n1. Namn: %s \n2. Beskrivning: %s \n3. Pris: %dkr \n4. Antal: %dst  \n5. Hyllinfo: %c%d \n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n",number, db->lager[db->counter].name, db->lager[db->counter].info, db->lager[db->counter].price, db->lager[db->counter].amount, db->lager[db->counter].place.shelf, db->lager[db->counter].place.location); 
 }
 
 
@@ -134,31 +135,10 @@ item.name, item.info, item.price, item.amount, item.place.shelf, item.place.loca
 }
 
 
-void edit_item(Db_t db){
-  bool should_continue = true;
-  while(should_continue){
-    list_db(db);
-    
-    do{
-      db->counter = ask_int_question("På vilken plats i databasen vill du spara din vara? (Mellan 1-20):")-1;
-	if(db->counter > 19 || db->lager[db->counter].amount == 0){
-	  puts("Var god ange en plats som innehåller en vara.");
-	  if(!ask_yes_no("Vill du fortsätta redigera en vara? (Y/N)")){
-	    puts("Du har nu avslutat operationen -Redigera en vara");
-	    should_continue = false;
-	    break;
-	  }
-	}
-    }while(db->counter > 19 || db->lager[db->counter].amount == 0);
-    
-    print_item_info_edit(db);
-    break;
-  }
-  
-}
 
 void add_item(Db_t db){
   vara_t item;
+
   item.name = malloc(sizeof(char)*30);
   ask_string_question("Namn:",item.name);
   
@@ -179,10 +159,10 @@ void add_item(Db_t db){
     puts("Var god ange en LEDIG plats mellan 1-20.");}
   }while(db->counter > 19 || db->lager[db->counter].amount != 0);
 
-  if(ask_yes_no("Spara till databasen? (Y/N)")){
+  if(ask_yes_no("Spara till databasen? (Y/N):")){
     save_to_db(db, item);
-    
-    puts("\nDu har nu sparat din vara till databasen*");
+    int number = db->counter+1;
+    printf("\nDu har nu spara din vara på plats nummer %d i databasen*\n", number);
   }
   else{
     puts("Varan sparades ej i databasen");
@@ -191,10 +171,11 @@ void add_item(Db_t db){
 
 void remove_item(Db_t db){
   bool should_continue = true;
+  list_db(db);
   while(should_continue){
     
     do{
-      db->counter = ask_int_question("Vilken plats har varan du vill ta bort i databasen? (Mellan 1-20):")-1;
+      db->counter = ask_int_question("\nVilken plats har varan du vill ta bort i databasen? (Mellan 1-20):")-1;
       if(db->counter > 19 || db->lager[db->counter].amount == 0){
 	puts("Var god ange en plats som innehåller en vara.");
 	if(!ask_yes_no("Vill du fortsätta ta bort en vara? (Y/N)")){
@@ -207,27 +188,64 @@ void remove_item(Db_t db){
     
     if(should_continue){
       db->lager[db->counter].amount = 0;
-      printf("Varan på plats nummer %d har tagits bort\n", ++db->counter);
+      printf("Varan på plats nummer %d har tagits bort*\n", ++db->counter);
     }
     break;
   }
 }
 
 
-/*do{
-    printf("Vilket nummer har varan du vill ta bort?: ");
-    while(true){
-    int reply;
-      if(scanf("%d", &reply)){
-      if(db->counter > 20 || db->lager[db->counter].amount != 0);{
-	db->lager[reply - 1].amount = 0;
-	printf("Varan på plats nummer %d har tagits bort\n", reply);
-      break;
+void edit_item(Db_t db){
+  bool should_continue = true;
+  list_db(db);
+  while(should_continue){
+    
+    
+    do{
+      db->counter = ask_int_question("\nVilken plats har varan i ditt lager som du vill redigera?:")-1;
+	if(db->counter > 19 || db->lager[db->counter].amount == 0){
+	  puts("Var god ange en plats som innehåller en vara.");
+	  if(!ask_yes_no("Vill du fortsätta redigera en vara? (Y/N)")){
+	    puts("Du har nu avslutat operationen -Redigera en vara");
+	    should_continue = false;
+	    break;
+	  }
+	}
+    }while(db->counter > 19 || db->lager[db->counter].amount == 0);
+    
+    print_item_info_edit(db);
+    while(should_continue){
+      
+      
+      switch(ask_int_question("Vilken egenskap skulle du vilja redigera?:")){
+      case 1:
+	ask_string_question("Namn:", db->lager[db->counter].name);
+	break;
+      case 2:
+	ask_string_question("Beskrivning:", db->lager[db->counter].info);
+	break;
+      case 3:
+	db->lager[db->counter].price = ask_int_question("Pris:");
+	
+	break;
+      case 4:
+       
+	 db->lager[db->counter].amount = ask_int_question("Antal:");
+	break;
+      case 5:
+	ask_char_question("Vänligen ange hyllplan (tex, A, B eller C):", &db->lager[db->counter].place.shelf);
+	db->lager[db->counter].place.location = ask_int_question("Ange vilket hyllnummer varan ligger på:"); 
+	break;
+      default:
+	puts("Vänligen ange ett nummer mellan 1-5");
       }
-      puts("Vänligen ange en siffra");  
+      should_continue = ask_yes_no("Vill du fortsätta redigera egenskaper för varan? (Y/N) ");
+      
+    }
+    print_item_info_edit(db);
   }
 }
-*/
+
 
 void print_main_menu(){
   printf("\nHej, välkommen till din varuhantering \n");
@@ -259,9 +277,8 @@ int main(void){
   start_counter(warehouse);
   
   while(should_continue){
-    int reply = ask_int_question("Vänligen ange ett nummer:");
     
-    switch (reply) {
+    switch (ask_int_question("Vänligen ange ett nummer:")) {
     case 1:
       add_item(warehouse);
       avslut();
@@ -294,10 +311,6 @@ int main(void){
   }
   return 0;
 }
-
-
-
-
 
 
 
@@ -350,3 +363,20 @@ bool ask_yes_no(char* question){
   }
 } 
 */
+
+
+/*do{
+    printf("Vilket nummer har varan du vill ta bort?: ");
+    while(true){
+    int reply;
+      if(scanf("%d", &reply)){
+      if(db->counter > 20 || db->lager[db->counter].amount != 0);{
+	db->lager[reply - 1].amount = 0;
+	printf("Varan på plats nummer %d har tagits bort\n", reply);
+      break;
+      }
+      puts("Vänligen ange en siffra");  
+  }
+}
+*/
+
