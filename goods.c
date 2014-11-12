@@ -4,9 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
-//#include "goods.h"
-
-
+#include "goods.h"
 
 typedef struct db_t *Db_t;
 
@@ -48,18 +46,14 @@ void print_item_info_add(vara_t item){
   printf("‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n        VARA\n        ‾‾‾‾\n[N]amn: %s \n[B]eskrivning: %s \n[P]ris: %dkr \n[A]ntal: %dst  \n[H]yllinfo: %c%d \n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n",
 item.name, item.info, item.price, item.amount, item.place.shelf, item.place.location);}
 
-void print_item_info(Db_t db){
+void print_item_info_db(Db_t db){
   int number = (db->counter+1);
   printf("‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n          [%d]\n[N]amn: %s \n[B]eskrivning: %s \n[P]ris: %dkr \n[A]ntal: %dst  \n[H]yllinfo: %c%d \n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n",number, db->lager[db->counter].name, db->lager[db->counter].info, db->lager[db->counter].price, db->lager[db->counter].amount, db->lager[db->counter].place.shelf, db->lager[db->counter].place.location);}
 
-void print_item_info_temp(tempDb_t temp){
-  
-  printf("‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n          []\n1. Namn: %s \n2. Beskrivning: %s \n3. Pris: %dkr \n4. Antal: %dst  \n5. Hyllinfo: %c%d \n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n", temp->temp[0].name, temp->temp[0].info, temp->temp[0].price, temp->temp[0].amount, temp->temp[0].place.shelf, temp->temp[0].place.location);}
-
-void save_to_db(Db_t db, vara_t item){
+void save_db_from_add(Db_t db, vara_t item){
   db->lager[db->counter] = item;}
 
-void save_temp_to_db(Db_t db, tempDb_t temp){
+void save_db_from_temp(Db_t db, tempDb_t temp){
 
   strcpy (db->lager[db->counter].name, temp->temp[0].name);
   strcpy (db->lager[db->counter].info, temp->temp[0].info);
@@ -70,7 +64,7 @@ void save_temp_to_db(Db_t db, tempDb_t temp){
 }
 
 void undo_action(Db_t db, tempDb_t temp){
-  save_temp_to_db(db, temp);
+  save_db_from_temp(db, temp);
   int number = (db->counter+1);
   printf("Du har nu ångrat den senaste ändringen på varan från plats %d*\n\n" , number); 
 }
@@ -87,7 +81,6 @@ void save_to_temp(Db_t db, tempDb_t temp){
 
 void start_counter(Db_t db){
   db->counter = 0;}
-
 
 int ask_int_question(char* question){  
   while (true){
@@ -119,7 +112,7 @@ bool get_goods_for_storage_location(Db_t db, tempDb_t temp){
   return false;
 }
 
-bool ask_yes_no(char* question){
+bool ask_yes_no_question(char* question){
   printf("%s ",question);
   char buffert[20];
   char reply;
@@ -156,7 +149,7 @@ void ask_char_question(char* question, char* reply){
   }while(buffert[2] != '\0');  
   *reply = toupper(buffert[0]);
 }
-void which_edit_item(Db_t db, tempDb_t temp){
+void save_edit_item(Db_t db, tempDb_t temp){
   char reply;
   ask_char_question("Vilken egenskap skulle du vilja redigera?:", &reply);
   switch(reply){
@@ -226,7 +219,7 @@ void add_item(Db_t db, tempDb_t temp){
     puts("Var god ange en LEDIG plats mellan 1-20.");}
   }while(db->counter > 19 || db->lager[db->counter].amount != 0);
   
-  while(ask_yes_no("Vill du ändra på någon egenskap innan du sparar? (Y/N):")){
+  while(ask_yes_no_question("Vill du ändra på någon egenskap innan du sparar? (Y/N):")){
     int x = 0;
     char reply;
     ask_char_question("Vänligen välj det du vill redigera", &reply);
@@ -261,8 +254,8 @@ void add_item(Db_t db, tempDb_t temp){
   }
   
   
-  if(ask_yes_no("Spara till databasen? (Y/N):")){    
-    save_to_db(db, item);
+  if(ask_yes_no_question("Spara till databasen? (Y/N):")){    
+    save_db_from_add(db, item);
     int number = db->counter+1;
     printf("\nDu har nu spara din vara på plats nummer %d i databasen*\n", number);
     temp->temp[0].amount = 0;
@@ -281,7 +274,7 @@ void remove_item(Db_t db, tempDb_t temp){
       db->counter = ask_int_question("\nVilken plats har varan du vill ta bort i databasen? (Mellan 1-20):")-1;
       if(db->counter > 19 || db->lager[db->counter].amount == 0){
 	puts("Var god ange en plats som innehåller en vara.");
-	if(!ask_yes_no("Vill du fortsätta ta bort en vara? (Y/N)")){
+	if(!ask_yes_no_question("Vill du fortsätta ta bort en vara? (Y/N)")){
 	  puts("Du har nu avslutat operationen -Ta bort en vara");
 	  should_continue = false;
 	  break;
@@ -289,7 +282,7 @@ void remove_item(Db_t db, tempDb_t temp){
       }
     }while(db->counter > 19 || db->lager[db->counter].amount == 0);
     if(should_continue){
-      if(ask_yes_no("Vill du verkligen ta bort denna vara? (Y/N)")){
+      if(ask_yes_no_question("Vill du verkligen ta bort denna vara? (Y/N)")){
       save_to_temp(db, temp);
       db->lager[db->counter].amount = 0;
       int number = db->counter+1;
@@ -310,20 +303,20 @@ void edit_item(Db_t db, tempDb_t temp){
       db->counter = ask_int_question("\nVilken plats har varan i ditt lager som du vill redigera?:")-1;
       if(db->counter > 19 || db->lager[db->counter].amount == 0){
 	puts("Var god ange en plats som innehåller en vara.");
-	if(!ask_yes_no("Vill du fortsätta redigera en vara? (Y/N)")){
+	if(!ask_yes_no_question("Vill du fortsätta redigera en vara? (Y/N)")){
 	  puts("Du har nu avslutat operationen -Redigera en vara");
 	  should_continue = false;
 	  break;
 	}
       }
     }while(db->counter > 19 || db->lager[db->counter].amount == 0);
-    print_item_info(db);
+    print_item_info_db(db);
     while(should_continue){
-      which_edit_item(db, temp);
-      should_continue = ask_yes_no("Vill du fortsätta redigera egenskaper för varan? (Y/N) "); 
+      save_edit_item(db, temp);
+      should_continue = ask_yes_no_question("Vill du fortsätta redigera egenskaper för varan? (Y/N) "); 
     }
     }
-  print_item_info(db);
+  print_item_info_db(db);
 }
 
 
@@ -335,7 +328,7 @@ void show_info(Db_t db){
 	db->counter = ask_int_question("Vilken vara vill du ha information om?:")-1;
 	if(db->counter > 19 || db->lager[db->counter].amount == 0){
 	  printf("Var god ange en plats som innehåller en vara\n");
-	  if(!ask_yes_no("Vill du fortsätta visa en vara? (Y/N)")){
+	  if(!ask_yes_no_question("Vill du fortsätta visa en vara? (Y/N)")){
 	    puts("Du har nu avslutat operationen -Visa en vara");
 	    should_continue = false;
 	    break;
@@ -343,8 +336,8 @@ void show_info(Db_t db){
 	}
       }while(db->counter > 19 || db->lager[db->counter].amount == 0);     
       if(should_continue){
-	print_item_info(db);
-	should_continue = ask_yes_no("Vill du ha information om fler varor? (Y/N): ");	
+	print_item_info_db(db);
+	should_continue = ask_yes_no_question("Vill du ha information om fler varor? (Y/N): ");	
       }     
     }
 }
