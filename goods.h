@@ -1,50 +1,94 @@
 #ifndef _goods_h
 #define _goods_h
 
+/*! \file goods.h
+    \brief Headfunctions
+    
+    This is the main module of the program goods.
+    This module links the whole program  
+*/
+
+struct plats_t{
+  char shelf; 
+  int location;};
+
+struct vara_t{
+  char* name; //namnet på varan
+  char* info; // beskriver varan
+  int price;    //priset
+  int amount; //antalet
+  struct plats_t place;};
+
+
+struct db_t{
+  struct vara_t lager[20];
+  int counter;};
+
+struct tempdb_t{
+  struct vara_t temp[1];};
+
+
 typedef struct db_t *Db_t;
 
 typedef struct vara_t vara_t;
 
 typedef struct tempdb_t *tempDb_t;
 
-void print_item_info_add(vara_t item); //Tar en variabel men structen vara_t och presenterar de olika egenskaperna.
-
-void print_item_info(Db_t db); // Tar structen Db_t som i sin tur innehåller en counter och ett lager[20]
-
-void save_db_from_add(Db_t db, vara_t item);
-
-void save_db_from_temp(Db_t db, tempDb_t temp);
-
-void undo_action(Db_t db, tempDb_t temp);
-
-void save_to_temp(Db_t db, tempDb_t temp);
-
-void start_counter(Db_t db);
-
-int ask_int_question(char* question);
-
-void ask_string_question(char* question, char* reply);
-
+/**
+*Takes a variable and presents it contents
+@param item a variable with the struct vara_t
+@return void
+ */
+void print_item_info_add(vara_t item);
+/**
+ *Return true if the properties place in db and temp match eachother.
+@param db a database with the struct Db_t
+@param temp a database with the struct tempDb_t
+@return true or false depending if its a match
+*/
 bool get_goods_for_storage_location(Db_t db, tempDb_t temp);
-
-bool ask_yes_no_question(char* question);
-
-void ask_char_question(char* question, char* reply);
-
-void which_edit_item(Db_t db, tempDb_t temp);
-
+/**
+ *Creates another struct item where replies for subsequent questions are entered as values. Afterwards stored in db.
+@param db a database with the struct Db_t
+@param temp a database with the struct tempDb_t
+@return void
+*/
 void add_item(Db_t db, tempDb_t temp);
-
+/**
+*Questions which item to be removed. Copies the chosen item into temp_item and then removes it from db.
+@param db a database with the struct Db_t
+@param temp a database with the struct tempDb_t
+@return void
+*/
 void remove_item(Db_t db, tempDb_t temp);
-
+/**
+Questions which item in db to modify.
+Modifies a propertie uppon the users request. Previous value store in temp
+@param db a database with the struct Db_t
+@param temp a database with the struct tempDb_t
+@return void 
+*/
 void edit_item(Db_t db, tempDb_t temp);
-
+/**
+*Shows all the information about a chosed item.
+@param db a database with the struct Db_t
+@return void
+*/
 void show_info(Db_t db);
-
+/**
+*Prints a graphical menu with all the options the user can do
+@return void
+*/
 void print_main_menu();
-
+/**
+ * Shows a quit note to the user, so the user know when one of the headfunctions has quit.
+@return void
+*/
 void avslut();
-
-int main(void);  
-
+/**
+ *Allocates space for Db_t warehouse and Tempdb_t temp_item. 
+ *Questions user for action. Depending on user input, calls on function.
+@returns int when quit return 1 as true
+*/
+int main(void);
 #endif

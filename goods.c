@@ -5,185 +5,14 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "goods.h"
+#include "goods_input.h"
+#include "goods_db.h"
 
-typedef struct db_t *Db_t;
-
-typedef struct vara_t vara_t;
-
-typedef struct tempdb_t *tempDb_t;
-
-struct plats_t{
-  char shelf; 
-  int location;};
-
-struct vara_t{
-  char* name; //namnet på varan
-  char* info; // beskriver varan
-  int price;    //priset
-  int amount; //antalet
-  struct plats_t place;};
-
-struct db_t{
-  struct vara_t lager[20];
-  int counter;};
-
-struct tempdb_t{
-  struct vara_t temp[1];};
-
-void list_db(Db_t db){
-  puts("\n");
-  
-  for(int i = 0; i < 20; i++){
-    if(db->lager[i].amount != 0){
-      printf("‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n[%d]: %s\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n", (i+1), db->lager[i].name);
-    }
-    else printf ("[%d]: Hyllan är tom \n", (i+1));
-  }
-}
 
 void print_item_info_add(vara_t item){
   
   printf("‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n        VARA\n        ‾‾‾‾\n[N]amn: %s \n[B]eskrivning: %s \n[P]ris: %dkr \n[A]ntal: %dst  \n[H]yllinfo: %c%d \n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n",
 item.name, item.info, item.price, item.amount, item.place.shelf, item.place.location);}
-
-void print_item_info_db(Db_t db){
-  int number = (db->counter+1);
-  printf("‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n          [%d]\n[N]amn: %s \n[B]eskrivning: %s \n[P]ris: %dkr \n[A]ntal: %dst  \n[H]yllinfo: %c%d \n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n",number, db->lager[db->counter].name, db->lager[db->counter].info, db->lager[db->counter].price, db->lager[db->counter].amount, db->lager[db->counter].place.shelf, db->lager[db->counter].place.location);}
-
-void save_db_from_add(Db_t db, vara_t item){
-  db->lager[db->counter] = item;}
-
-void save_db_from_temp(Db_t db, tempDb_t temp){
-
-  strcpy (db->lager[db->counter].name, temp->temp[0].name);
-  strcpy (db->lager[db->counter].info, temp->temp[0].info);
-  db->lager[db->counter].price = temp->temp[0].price;
-  db->lager[db->counter].amount = temp->temp[0].amount;
-  db->lager[db->counter].place.shelf = temp->temp[0].place.shelf;
-  db->lager[db->counter].place.location = temp->temp[0].place.location;
-}
-
-void undo_action(Db_t db, tempDb_t temp){
-  save_db_from_temp(db, temp);
-  int number = (db->counter+1);
-  printf("Du har nu ångrat den senaste ändringen på varan från plats %d*\n\n" , number); 
-}
-
-void save_to_temp(Db_t db, tempDb_t temp){
- 
-  strcpy (temp->temp[0].name, db->lager[db->counter].name);
-  strcpy (temp->temp[0].info, db->lager[db->counter].info);
-  temp->temp[0].price = db->lager[db->counter].price;
-  temp->temp[0].amount = db->lager[db->counter].amount;
-  temp->temp[0].place.shelf = db->lager[db->counter].place.shelf;
-  temp->temp[0].place.location = db->lager[db->counter].place.location;}
-
-
-void start_counter(Db_t db){
-  db->counter = 0;}
-
-int ask_int_question(char* question){  
-  while (true){
-    printf("%s ",question);
-    int reply;
-    if (scanf("%d",&reply)){
-      while (getchar() != '\n');
-      return reply;
-      
-    }
-    printf("Fel format på inmatning, vänligen försök igen med siffror! \n");
-    while (getchar() != '\n');
-  }
-}
-
-void ask_string_question(char* question, char* reply){
-  do{
-    printf("%s ",question);
-    scanf("%[^\n]s*", reply);
-    while (getchar() != '\n');
-  }while(strlen(reply) < 1);
-}
-
-bool get_goods_for_storage_location(Db_t db, tempDb_t temp){
-  for(int i = 0; i < 20; i++){
-    if (!(db->lager[i].place.location != temp->temp[0].place.location || db->lager[i].place.shelf != temp->temp[0].place.shelf)){
-      return true;}
-  }
-  return false;
-}
-
-bool ask_yes_no_question(char* question){
-  printf("%s ",question);
-  char buffert[20];
-  char reply;
-  while(true){    
-    //while (getchar() != '\n');
-     do{
-       fgets(buffert, sizeof(buffert), stdin);
-     if(buffert[2] != '\0'){
-       puts("Vänligen ange enbart en bokstav (Y/N)");
-     }
-     }while(buffert[2] != '\0');    
-  reply = tolower(buffert[0]);
-  switch (reply){
-  case 'y' :
-    return true;
-    break;
-  case 'n':
-    return false;
-    break;
-  default:
-    puts("Vänligen använd (Y/N)");
-  }
-  }
-}
-
-void ask_char_question(char* question, char* reply){
-  printf("%s " ,question);
-  char buffert[32];
-  do {
-    fgets(buffert, sizeof(buffert), stdin);
-    if(buffert[2] != '\0'){
-      printf("Du har angett för många bokstäver, vänligen ange enbart EN bokstav: ");
-    }
-  }while(buffert[2] != '\0');  
-  *reply = toupper(buffert[0]);
-}
-void save_edit_item(Db_t db, tempDb_t temp){
-  char reply;
-  ask_char_question("Vilken egenskap skulle du vilja redigera?:", &reply);
-  switch(reply){
-      case 'N':
-	save_to_temp(db, temp);
-	ask_string_question("Namn:", db->lager[db->counter].name);
-	break;
-      case 'B':;
-	save_to_temp(db, temp);
-	ask_string_question("Beskrivning:", db->lager[db->counter].info);
-	break;
-      case 'P':
-	save_to_temp(db, temp);
-	db->lager[db->counter].price = ask_int_question("Pris:");
-	break;
-      case 'A':
-	save_to_temp(db, temp);
-       	db->lager[db->counter].amount = ask_int_question("Antal:");
-	break;
-      case 'H':
-	save_to_temp(db, temp);
-
-	do{
-	  ask_char_question("Vänligen ange hyllplan (tex, A, B eller C):", &temp->temp[0].place.shelf);
-	  temp->temp[0].place.location = ask_int_question("Ange vilket hyllnummer varan ligger på:"); 
-	}while(get_goods_for_storage_location(db, temp));
-	
-	db->lager[db->counter].place.location = temp->temp[0].place.location;
-	db->lager[db->counter].place.shelf = temp->temp[0].place.shelf;
- break;
- default:
-   puts("Vänligen ange ett nummer mellan 1-5");
-}
-}
 
 
 void add_item(Db_t db, tempDb_t temp){
@@ -265,6 +94,42 @@ void add_item(Db_t db, tempDb_t temp){
   }
 }
 
+
+void save_edit_item(Db_t db, tempDb_t temp){
+  char reply;
+  ask_char_question("Vilken egenskap skulle du vilja redigera?:", &reply);
+  switch(reply){
+      case 'N':
+	save_to_temp(db, temp);
+	ask_string_question("Namn:", db->lager[db->counter].name);
+	break;
+      case 'B':;
+	save_to_temp(db, temp);
+	ask_string_question("Beskrivning:", db->lager[db->counter].info);
+	break;
+      case 'P':
+	save_to_temp(db, temp);
+	db->lager[db->counter].price = ask_int_question("Pris:");
+	break;
+      case 'A':
+	save_to_temp(db, temp);
+       	db->lager[db->counter].amount = ask_int_question("Antal:");
+	break;
+      case 'H':
+	save_to_temp(db, temp);
+
+	do{
+	  ask_char_question("Vänligen ange hyllplan (tex, A, B eller C):", &temp->temp[0].place.shelf);
+	  temp->temp[0].place.location = ask_int_question("Ange vilket hyllnummer varan ligger på:"); 
+	}while(get_goods_for_storage_location(db, temp));
+	
+	db->lager[db->counter].place.location = temp->temp[0].place.location;
+	db->lager[db->counter].place.shelf = temp->temp[0].place.shelf;
+ break;
+ default:
+   puts("Vänligen ange ett nummer mellan 1-5");
+}
+}
 
 void remove_item(Db_t db, tempDb_t temp){
   bool should_continue = true;
@@ -349,14 +214,6 @@ void print_main_menu(){
   printf("%s", "Hej, välkommen till din varuhantering");
   printf("%-5s", "\n");
   printf("%s", "‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n");
-  /*printf("1. Lägg till en vara \n");
-  printf("2. Ta bort en vara \n");
-  printf("3. Redigera en vara \n");
-  printf("4. Lista varor \n");
-  printf("5. Ångra tillägg av vara \n");
-  printf("6. Lista meny igen \n");
-  printf("7. Avsluta programmet \n");
-  */
   printf("[L]ägga till en vara\n");
   printf("[T]a bort en vara\n");
   printf("[R]edigera en vara\n");
